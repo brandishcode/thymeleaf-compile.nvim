@@ -1,0 +1,26 @@
+local M = {}
+
+M.setup = function(opts)
+  local rootdir = vim.fs.dirname(vim.fs.find({"mvnw"}, { upward = true })[1])
+  local pattern = "*.html,*.css"
+  if opts["pattern"] ~= nil then
+    pattern = pattern .. "," .. opts["pattern"]
+  end
+
+  if rootdir ~= nil and rootdir ~= '' then
+    vim.api.nvim_create_autocmd("BufWritePost", {
+      group = vim.api.nvim_create_augroup("ThymeleafCompile", { clear = true }),
+      pattern = pattern,
+      callback = function()
+        local Job = require("plenary.job")
+        Job:new({
+          command = "./mvnw",
+          args = { "compile" },
+          cwd = rootdir
+        }):start()
+      end
+    })
+  end
+end
+
+return M
